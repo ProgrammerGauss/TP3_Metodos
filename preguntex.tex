@@ -10,3 +10,43 @@ Idea: 2 conjuntos de vectores singulares {ui} y {vi}
 A de R^{m x m} de rango r (#filas o col LI)
 Obs: r <= min(m,n)
 A tiene r valores singulares no negativos {sigma_i} en orden decreciente
+
+
+n = 19
+p*p aprox = 700
+
+=> A es gorda y petiza
+
+importar imagenes con imageioV2
+definir una array A = np.zeros((n,n,p))
+for i in n:
+    imagen.flatten()
+
+recuperar tamanio de imagen
+np.reshape(A[i, i], img.shape)
+
+graficar (imshow)
+    v sub i con i = 1 a 19
+
+en este caso U va a ser el numero que corresponde a cada imagen
+    vector que tiene 19 elementos
+-> me va a dar la mejor aproximacion de la imagen de rango R
+
+u
+
+np.SVD(A)
+U, sigma, V = np.SVD(A)
+A = U @ np.diag(sigma) @ V.T
+
+USAR EL TEOREMA DE ECKART Y YOUNG
+
+
+
+Compresion
+si tengo U S y V de A
+A_k = U[:, :k] @ S[:k, :k] @ V[:k, :]
+ESTA ES LA VERSION REDUCIDA 
+
+Matrices autosimilares
+    Matriz de cosenos:
+        

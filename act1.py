@@ -5,11 +5,11 @@ from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
-
-# Cargar el dataset
 data = pd.read_csv('dataset03.csv')
 X = data.values
+X = X[:,1:]
+X = X[1:,:]
+
 
 # Definir la función de similaridad no-lineal
 def similarity(xi, xj, sigma):
