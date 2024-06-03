@@ -43,7 +43,7 @@ def plot_reconstructed_images(X, img_shape, d_values):
     plt.show()
 
 d_values = [2, 5, 10, 20, 28]
-plot_reconstructed_images(X1, img_shape, d_values)
+# plot_reconstructed_images(X1, img_shape, d_values)
 
 def compute_similarity(X, d):
     svd, X_transformed = compute_svd(X, n_components=d)
@@ -60,7 +60,7 @@ def plot_similarity_matrices(X, d_values):
     plt.tight_layout()
     plt.show()
 
-plot_similarity_matrices(X1, d_values)
+# plot_similarity_matrices(X1, d_values)
 
 def find_optimal_d(X, max_d=100, error_threshold=0.1):
     errors = []
@@ -111,3 +111,10 @@ número de dimensiones. Con un valor de d bajo, la imagen reconstruida puede ser
  información de la imagen original. Sin embargo, también hay un compromiso, ya que un mayor número de dimensiones también significa
  un mayor costo computacional.'''
 
+#2.3
+'''
+Utilizando compresión con distintos valores de d medir la similaridad entre pares de imágenes (con
+alguna métrica de similaridad que decida el autor) en un espacio de baja dimensión d. Analizar cómo
+la similaridad entre pares de imágenes cambia a medida que se utilizan distintos valores de d. Cuales
+imágenes se encuentran cerca entre si? Alguna interpretación al respecto? Ayuda: ver de utilizar una
+matriz de similaridad para visualizar todas las similaridades par-a-par juntas.'''
