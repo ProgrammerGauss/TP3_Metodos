@@ -4,7 +4,6 @@ from sklearn.decomposition import TruncatedSVD
 import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 from skimage.io import imread
-import pandas as pd
 
 def load_images_from_directory(directory_path):
     file_list = os.listdir(directory_path)
@@ -27,18 +26,23 @@ def compute_svd(X, n_components):
     return svd, X_transformed
 
 def plot_reconstructed_images(X, img_shape, d_values):
-    fig, axes = plt.subplots(len(d_values), 2, figsize=(10, 15))
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10))  # Cambiamos a 2 filas y 3 columnas
+    axes = axes.ravel()  # Aplanamos el array de ejes para poder indexarlo con un solo índice
+
     for i, d in enumerate(d_values):
         svd, X_transformed = compute_svd(X, n_components=d)
         X_approx = svd.inverse_transform(X_transformed)
-        axes[i, 0].imshow(X[0].reshape(img_shape), cmap='gray')
-        axes[i, 0].set_title('Original')
-        axes[i, 1].imshow(X_approx[0].reshape(img_shape), cmap='gray')
-        axes[i, 1].set_title(f'Reconstrucción con d={d}')
+        axes[i].imshow(X_approx[0].reshape(img_shape), cmap='gray')  # Mostramos la imagen reconstruida
+        axes[i].set_title(f'Reconstrucción con d={d}')
+
+    # Mostramos la imagen original en la última posición
+    axes[-1].imshow(X[0].reshape(img_shape), cmap='gray')
+    axes[-1].set_title('Original')
+
     plt.tight_layout()
     plt.show()
 
-d_values = [5, 10, 50]
+d_values = [2, 5, 10, 20, 28]
 plot_reconstructed_images(X1, img_shape, d_values)
 
 def compute_similarity(X, d):
@@ -85,3 +89,25 @@ plt.ylabel('Reconstruction Error')
 plt.title('Reconstruction Error vs. Number of Dimensions')
 plt.legend()
 plt.show()
+
+#Aprender una representación basada en Descomposición de Valores Singulares utilizando las n imágenes del dataset 1. 
+X1_svd = np.linalg.svd(X1, full_matrices=False)
+U1, S1, V1 = X1_svd
+
+#graficar los valores singulares de la matriz X1, como un grafico de barras
+plt.bar(range(1, len(S1) + 1), S1)
+plt.xlabel('Singular Value Index')
+plt.ylabel('Singular Value')
+plt.title('Singular Values of X1')
+plt.show()
+
+
+'''
+conclusiones del 2.2
+En cuanto a las conclusiones, al visualizar las imágenes reconstruidas después de la compresión con diferentes 
+valores de d dimensiones, puedes observar cómo la calidad de la reconstrucción mejora a medida que aumenta el 
+número de dimensiones. Con un valor de d bajo, la imagen reconstruida puede ser apenas reconocible, pero a medida que d aumenta
+, la imagen se vuelve cada vez más similar a la original. Esto se debe a que un mayor número de dimensiones permite capturar más
+ información de la imagen original. Sin embargo, también hay un compromiso, ya que un mayor número de dimensiones también significa
+ un mayor costo computacional.'''
+
