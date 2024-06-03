@@ -4,6 +4,11 @@ from sklearn.decomposition import TruncatedSVD
 import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import cosine_similarity
 from skimage.io import imread
+import zipfile
+
+def extract_zip_to_directory(zip_path, directory_path):
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(directory_path)
 
 # Función para cargar imágenes desde un directorio y devolverlas como una matriz
 def load_images_from_directory(directory_path):
@@ -15,9 +20,13 @@ def load_images_from_directory(directory_path):
     images_matrix = np.array(images)
     return images_matrix, img.shape
 
-# Cargar las imágenes de los directorios
-dataset1_path = 'datasets_imgs.zip'
-dataset2_path = 'datasets_imgs02.zip'
+
+dataset1_path = 'datasets_imgs'
+dataset2_path = 'datasets_imgs_02'
+extract_zip_to_directory('datasets_imgs.zip', dataset1_path)
+extract_zip_to_directory('datasets_imgs_02.zip', dataset2_path)
+
+
 X1, img_shape = load_images_from_directory(dataset1_path)
 X2, _ = load_images_from_directory(dataset2_path)
 
