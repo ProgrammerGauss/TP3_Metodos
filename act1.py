@@ -120,3 +120,41 @@ def act1_3():
     plt.title('Residuos para las mejores muestras')
     plt.show()
 
+
+'''de las p dimensiones originales del dataset, cuales son las mas representativas con respecto a las
+dimensiones d obtenidas por SVD? Indicar que dimensiones originales del conjunto p son las mas
+importantes y el método utilizado para determinarlas.
+1
+'''
+def act1_2():
+    def PCA3(X, d):
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
+        X_mean = np.mean(X, axis=0)
+        X_centered = X - X_mean
+        covariance_matrix = np.cov(X_centered.T)  # Note the transpose
+        U, S, VT = np.linalg.svd(covariance_matrix, full_matrices=False)
+
+        U_reducido = U[:,:d]
+        S_reducido = np.diag(S[:d])
+        V_reducido = VT[:d,:]
+
+        return U_reducido, S_reducido, V_reducido
+
+    # Calcular las dimensiones más importantes
+    U_reducido, S_reducido, V_reducido = PCA3(X, 2)
+    V = V_reducido.T
+    most_important_dimensions = np.argsort(np.abs(V), axis=0)[-2:]
+    print("Las dimensiones más importantes son: ", most_important_dimensions)
+
+    # Crear un gráfico que muestre la importancia de cada dimensión original
+    plt.figure(figsize=(10, 6))
+    plt.bar(range(1, X.shape[1] + 1), np.abs(V[:,0]), label='Dimensión 1')
+    plt.bar(range(1, X.shape[1] + 1), np.abs(V[:,1]), label='Dimensión 2', alpha=0.5)
+    plt.xlabel('Dimensiones originales')
+    plt.ylabel('Importancia')
+    plt.title('Importancia de cada dimensión original')
+    plt.legend()
+    plt.show()
+
+act1_2()
