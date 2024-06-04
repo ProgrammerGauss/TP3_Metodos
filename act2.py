@@ -4,6 +4,13 @@ from sklearn.decomposition import TruncatedSVD
 import matplotlib.pyplot as plt
 from skimage.io import imread
 
+dataset1_path = 'Datasets/datasets_imgs'
+dataset2_path = 'Datasets/datasets_imgs_02'
+
+
+
+d_values = [2, 5, 8, 12, 20, 28]
+
 def load_images_from_directory(directory_path):
     file_list = os.listdir(directory_path)
     images = []
@@ -72,25 +79,6 @@ def find_optimal_d(X, max_d=8, error_threshold=0.1):
             return d, errors
     return max_d, errors
 
-dataset1_path = 'Datasets/datasets_imgs'
-dataset2_path = 'Datasets/datasets_imgs_02'
-
-X1, img_shape = load_images_from_directory(dataset1_path)
-X2, _ = load_images_from_directory(dataset2_path)
-
-d_values = [2, 5, 8, 12, 20, 28]
-
-
-optimal_d, errors = find_optimal_d(X2)
-print(f"Optimal d for dataset 2: {optimal_d}")
-
-svd, _ = compute_svd(X2, n_components=optimal_d)
-X1_approx = svd.inverse_transform(svd.transform(X1))
-reconstruction_error = np.linalg.norm(X1 - X1_approx, 'fro') / np.linalg.norm(X1, 'fro')
-print(f"Reconstruction error for dataset 1 using base from dataset 2 with d={optimal_d}: {reconstruction_error}")
-
-d_values_error, errors = zip(*errors)
-
 def grafico_errores():
     plt.plot(d_values, errors, marker='o')
     plt.axhline(y=0.1, color='r', linestyle='--', label='10% Error Threshold')
@@ -140,12 +128,24 @@ def imagenes_d_fijo():
     plt.show()
 
 
+X1, img_shape = load_images_from_directory(dataset1_path)
+X2, _ = load_images_from_directory(dataset2_path)
 
-# grafico_errores()
+optimal_d, errors = find_optimal_d(X2)
+print(f"Optimal d for dataset 2: {optimal_d}")
+
+svd, _ = compute_svd(X2, n_components=optimal_d)
+X1_approx = svd.inverse_transform(svd.transform(X1))
+reconstruction_error = np.linalg.norm(X1 - X1_approx, 'fro') / np.linalg.norm(X1, 'fro')
+print(f"Reconstruction error for dataset 1 using base from dataset 2 with d={optimal_d}: {reconstruction_error}")
+
+d_values_error, errors = zip(*errors)
+
+grafico_errores()
 # representacion_svd()
 # imagenes_d_fijo()
-# plot_reconstructed_images(X1, img_shape, d_values)
-plot_similarity_matrices(X1, d_values)
+# plot_reconstructed_images(X1, img_shape)
+# plot_similarity_matrices(X1, d_values)
 
 
 
