@@ -107,7 +107,7 @@ def act1_3():
                     S[i] = 0
 
         S = np.diag(S)
-        U_reducido = U[:,:d] @ S[:d,:d]
+        U_reducido = U[:,:d] 
         S_reducido = S[:d,:d]
         V_reducido = VT[:d,:]
 
@@ -117,7 +117,7 @@ def act1_3():
     errors = []
     for d in range(1, X.shape[1] + 1):
         U_reducido, S_reducido, V_reducido = PCA2(X, d)
-        X_reducido = X @ U_reducido
+        X_reducido = U_reducido @ S_reducido @ V_reducido
         beta_reducido = np.linalg.pinv(X_reducido.T @ X_reducido) @ X_reducido.T @ y
         y_pred = X_reducido @ beta_reducido
         error = np.linalg.norm(y - y_pred)**2
@@ -130,7 +130,7 @@ def act1_3():
 
     # Encontrar las muestras con mejor predicción
     U_reducido, S_reducido, V_reducido = PCA2(X, best_d)
-    X_reducido = X @ U_reducido
+    X_reducido = U_reducido @ S_reducido @ V_reducido
     beta_reducido = np.linalg.pinv(X_reducido.T @ X_reducido) @ X_reducido.T @ y
     y_pred = X_reducido @ beta_reducido
     residuals = np.abs(y - y_pred)
@@ -220,5 +220,5 @@ def grafico_clusters(X):
 
 # act1_1()
 # act1_2()
-# act1_3()
+act1_3()
 grafico_clusters(X)

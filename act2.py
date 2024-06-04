@@ -26,6 +26,16 @@ def compute_svd(X, n_components):
     X_transformed = svd.fit_transform(X)
     return svd, X_transformed
 
+def svd_d(X, d):
+    U, S, Vt = np.linalg.svd(X, full_matrices=False)
+
+    U_reducido = U[:, :d]
+    S_reducido = np.diag(S[:d])
+    Vt_reducido = Vt[:d, :]
+
+    X_reducida = U_reducido.dot(S_reducido).dot(Vt_reducido)
+    return X_reducida
+
 def plot_reconstructed_images(X, img_shape):
     fig, axes = plt.subplots(4, 5, figsize=(10, 7), dpi=100, constrained_layout=True)
     axes = axes.ravel()  # Aplanamos el array de ejes para poder indexarlo con un solo índice
