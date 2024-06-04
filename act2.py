@@ -9,7 +9,8 @@ dataset2_path = 'Datasets/datasets_imgs_02'
 
 
 
-d_values = [2, 5, 8, 12, 20, 28]
+d_values = [2, 5, 8, 12, 15, 19]
+d_values1 = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, 16, 17, 18, 19, 20]
 
 def load_images_from_directory(directory_path):
     file_list = os.listdir(directory_path)
@@ -26,14 +27,15 @@ def compute_svd(X, n_components):
     return svd, X_transformed
 
 def plot_reconstructed_images(X, img_shape):
-    fig, axes = plt.subplots(2, 3, figsize=(15, 10), dpi=100, constrained_layout=True)
+    fig, axes = plt.subplots(4, 5, figsize=(10, 7), dpi=100, constrained_layout=True)
     axes = axes.ravel()  # Aplanamos el array de ejes para poder indexarlo con un solo índice
 
-    for i in range(len(d_values)):
-        svd, X_transformed = compute_svd(X, n_components=d_values[i])
+    plt.suptitle('Reconstrucción de Imágenes con Diferentes Dimensiones', fontsize=12)
+    for i in range(len(d_values1)):
+        svd, X_transformed = compute_svd(X, n_components=d_values1[i])
         X_approx = svd.inverse_transform(X_transformed)
         axes[i].imshow(X_approx[0].reshape(img_shape), cmap='gray')
-        axes[i].set_title(f'd={d_values[i]}', fontsize=10)
+        axes[i].set_title(f'd={d_values1[i]}', fontsize=10)
         axes[i].axis('off')
 
     # Eliminar los ejes vacíos si no hay suficientes d_values para llenar todas las columnas
@@ -68,23 +70,38 @@ def plot_similarity_matrices(X, d_values):
 
     plt.show()
 
-def find_optimal_d(X, max_d=8, error_threshold=0.1):
-    errors = []
-    for d in range(1, max_d + 1):
-        svd, X_transformed = compute_svd(X, n_components=d)
-        X_approx = svd.inverse_transform(X_transformed)
-        error = np.linalg.norm(X - X_approx, 'fro') / np.linalg.norm(X, 'fro')
-        errors.append((d, error))
-        if error <= error_threshold:
-            return d, errors
-    return max_d, errors
+
 
 def grafico_errores():
+    def find_optimal_d(X, max_d=8, error_threshold=0.1):
+        errors = []
+        for d in range(1, max_d + 1):
+            svd, X_transformed = compute_svd(X, n_components=d)
+            X_approx = svd.inverse_transform(X_transformed)
+            error = np.linalg.norm(X - X_approx, 'fro') / np.linalg.norm(X, 'fro')
+            errors.append((d, error))
+            if error <= error_threshold:
+                return d, errors
+        return max_d, errors
+
+
+    optimal_d, errors = find_optimal_d(X2)
+    print(f"Optimal d for dataset 2: {optimal_d}")
+    d_values, errors = zip(*errors)
+    
+    svd, _ = compute_svd(X2, n_components=optimal_d)
+    X1_approx = svd.inverse_transform(svd.transform(X1))
+    reconstruction_error = np.linalg.norm(X1 - X1_approx, 'fro') / np.linalg.norm(X1, 'fro')
+    print(f"Reconstruction error for dataset 1 using base from dataset 2 with d={optimal_d}: {reconstruction_error}")
+
     plt.plot(d_values, errors, marker='o')
     plt.axhline(y=0.1, color='r', linestyle='--', label='10% Error Threshold')
     plt.xlabel('Number of dimensions (d)')
     plt.ylabel('Reconstruction Error')
     plt.title('Reconstruction Error vs. Number of Dimensions')
+    plt.gca().set_yticklabels(['{:.0f}%'.format(x*100) for x in plt.gca().get_yticks()])
+    y_optimo = errors[6]
+    plt.axhline(y=y_optimo, color='g', linestyle='--', label=f'Closest Optimal Error at {y_optimo:.2%}')
     plt.legend()
     plt.show()
 
@@ -106,15 +123,15 @@ def imagenes_d_fijo():
     X_approx = svd.inverse_transform(X_transformed)
     fig, axes = plt.subplots(4, 5, figsize=(15, 10))
     axes = axes.ravel()
-
-    plt.title(f'Reconstrucción con d={d}', fontsize=10)
+    
+    fig.suptitle(f'Reconstrucción con d={d}', fontsize=10)
     for i in range(19):
         axes[i].imshow(X_approx[i].reshape(img_shape), cmap='gray')
         axes[i].set_title(f'Imagen {i + 1}', fontsize=10)
         axes[i].axis('off')
-
+    
     fig.delaxes(axes[19])
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Ajusta el layout para dejar espacio para el título
     plt.show()
 
     #mostrar la matriz de similaridad para d=5
@@ -128,20 +145,36 @@ def imagenes_d_fijo():
     plt.show()
 
 
+    #mostrar solo las imagenes 2 y 17 cada una con calculada con dimension 5
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    fig.suptitle('Reconstrucción de Imágenes 12 y 8 con d=5', fontsize=10)
+    axes[0].imshow(X_approx[11].reshape(img_shape), cmap='gray')
+    axes[0].set_title('Imagen 12', fontsize=10)
+    axes[0].axis('off')
+    axes[1].imshow(X_approx[7].reshape(img_shape), cmap='gray')
+    axes[1].set_title('Imagen 8', fontsize=10)
+    axes[1].axis('off')
+    plt.tight_layout(rect=[0, 0, 1, 0.9])  # Ajusta el layout para dejar espacio para el título
+    plt.show()
+
+    #mostrar solo las imagenes 2 y 17 cada una con calculada con dimension 5
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    fig.suptitle('Reconstrucción de Imágenes 2 y 17 con d=5', fontsize=10)
+    axes[0].imshow(X_approx[1].reshape(img_shape), cmap='gray')
+    axes[0].set_title('Imagen 2', fontsize=10)
+    axes[0].axis('off')
+    axes[1].imshow(X_approx[17].reshape(img_shape), cmap='gray')
+    axes[1].set_title('Imagen 17', fontsize=10)
+    axes[1].axis('off')
+    plt.tight_layout(rect=[0, 0, 1, 0.9])  # Ajusta el layout para dejar espacio para el título
+    plt.show()
+
 X1, img_shape = load_images_from_directory(dataset1_path)
 X2, _ = load_images_from_directory(dataset2_path)
 
-optimal_d, errors = find_optimal_d(X2)
-print(f"Optimal d for dataset 2: {optimal_d}")
 
-svd, _ = compute_svd(X2, n_components=optimal_d)
-X1_approx = svd.inverse_transform(svd.transform(X1))
-reconstruction_error = np.linalg.norm(X1 - X1_approx, 'fro') / np.linalg.norm(X1, 'fro')
-print(f"Reconstruction error for dataset 1 using base from dataset 2 with d={optimal_d}: {reconstruction_error}")
 
-d_values_error, errors = zip(*errors)
-
-grafico_errores()
+# grafico_errores()
 # representacion_svd()
 # imagenes_d_fijo()
 # plot_reconstructed_images(X1, img_shape)
