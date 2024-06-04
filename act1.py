@@ -3,8 +3,7 @@ import pandas as pd
 from sklearn.decomposition import *
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import StandardScaler
-
+from scipy.spatial.distance import pdist, squareform
 
 #cargar los datos del csv y y.txt
 data = pd.read_csv('dataset03.csv', header=None)
@@ -16,7 +15,7 @@ X = X.astype(float)
 
 y = np.loadtxt('Datasets/y3.txt')
 
-sigma = 25
+sigma = 1
 # dimensions = [2, 6, 10, X.shape[1]]
 
 def similarity(xi, xj, sigma):
@@ -24,56 +23,62 @@ def similarity(xi, xj, sigma):
     return np.exp(-dist_sq / (2 * sigma ** 2))
 
 def PCA(X, d):
-    scaler = StandardScaler()
-    X = scaler.fit_transform(X)
-    X_mean = np.mean(X, axis=0)
-    X_centered = X - X_mean
-    covariance_matrix = np.cov(X_centered.T)  # Note the transpose
-    U, S, VT = np.linalg.svd(covariance_matrix, full_matrices=False)
+    X_centered = X - np.mean(X, axis=0)
+    U, S, VT = np.linalg.svd(X_centered, full_matrices=False)
 
-    U_reducido = U[:,:d]
-    X_reducido = X @ U_reducido
+    for i in range(len(S)):
+        if S[i] < 1e-10:
+            if i > d:
+                S = S[:i]
+                break
+            else:
+                S[i] = 0
+    
+    S = np.diag(S)
+    return U[:,:d] @ S[:d,:d]
 
-    return X_reducido
+
+# def calculate_similarity_matrix(X, sigma):
+#     n_samples = X.shape[0]
+#     similarity_matrix = np.zeros((n_samples, n_samples))
+#     for i in range(n_samples):
+#         for j in range(i, n_samples):
+#             similarity_matrix[i, j] = similarity(X[i], X[j], sigma)
+#     return similarity_matrix
 
 def calculate_similarity_matrix(X, sigma):
-    n_samples = X.shape[0]
-    similarity_matrix = np.zeros((n_samples, n_samples))
-    for i in range(n_samples):
-        for j in range(n_samples):
-            similarity_matrix[i, j] = similarity(X[i], X[j], sigma)
+    pairwise_dists = squareform(pdist(X, 'euclidean'))
+    similarity_matrix = np.exp(-pairwise_dists ** 2 / (2 * sigma ** 2))
     return similarity_matrix
 
 # Calcular la matriz de similaridad para los datos originales y los datos reducidos
 def act1_1():
-    dimensions = [2, 6, 10]
-    num_dimensions = len(dimensions) + 1  # +1 para los datos originales
+    dimensions = [2, 6, 10, X.shape[1]]
 
     # Calcular la matriz de similaridad para los datos originales
-    similarity_matrix_X = calculate_similarity_matrix(X, sigma)
+    similarity_matrix_X = calculate_similarity_matrix(X, sigma )
 
-    # Crear una figura con suficientes subplots para todas las dimensiones
-    fig, axes = plt.subplots(1, num_dimensions, figsize=(5 * num_dimensions, 5), dpi=100)
+    # Crear una figura para los datos originales
+    fig, ax = plt.subplots(figsize=(6, 6), dpi=100)
+    sns.heatmap(similarity_matrix_X, cmap='coolwarm', ax=ax, square=True)
+    ax.set_title('Datos Originales')
+    ax.set_xlabel('Índice de Muestra')
+    ax.set_ylabel('Índice de Muestra')
+    plt.show()
 
-    # Ajustar el espaciado entre los subplots
-    plt.subplots_adjust(wspace=0.3, hspace=0.3)
-
-    # Mostrar la matriz de similaridad para los datos originales
-    sns.heatmap(similarity_matrix_X, cmap='coolwarm', ax=axes[0])
-    axes[0].set_title('Datos Originales')
-    axes[0].set_xlabel('Índice de Muestra')
-    axes[0].set_ylabel('Índice de Muestra')
-
-    # Para cada dimensión, calcular la matriz de similaridad y mostrarla
-    for i, d in enumerate(dimensions):
+    # Para cada dimensión, calcular la matriz de similaridad y mostrarla en una nueva figura
+    for d in dimensions:
         X_reducido = PCA(X, d)
         similarity_matrix_X_reducido = calculate_similarity_matrix(X_reducido, sigma)
-        sns.heatmap(similarity_matrix_X_reducido, cmap='coolwarm', ax=axes[i + 1])
-        axes[i + 1].set_title(f'Datos Reducidos (d={d})')
-        axes[i + 1].set_xlabel('Índice de Muestra')
-        axes[i + 1].set_ylabel('Índice de Muestra')
 
-    plt.show()
+        fig, ax = plt.subplots(figsize=(6, 6), dpi=100)
+        sns.heatmap(similarity_matrix_X_reducido, cmap='coolwarm', ax=ax, square=True)
+        ax.set_title(f'Datos Reducidos (d={d})')
+        ax.set_xlabel('Índice de Muestra')
+        ax.set_ylabel('Índice de Muestra')
+        ax.set_xticks(np.arange(0, X_reducido.shape[0], 20))  # Ajustar las marcas de los ejes a la forma de los datos reducidos
+        ax.set_yticks(np.arange(0, X_reducido.shape[0], 20))  # Ajustar las marcas de los ejes a la forma de los datos reducidos
+        plt.show()
 
 def act1_3():
     def PCA2(X, d):
@@ -168,3 +173,5 @@ def act1_2():
     plt.show()
 
 act1_1()
+# act1_2()
+# act1_3()
