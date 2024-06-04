@@ -42,27 +42,33 @@ def plot_reconstructed_images(X, img_shape, d_values):
     plt.tight_layout()
     plt.show()
 
-d_values = [2, 5, 10, 20, 28]
-# plot_reconstructed_images(X1, img_shape, d_values)
+d_values = [2, 5, 8, 12, 16]
+plot_reconstructed_images(X1, img_shape, d_values)
 
-def compute_similarity(X, d):
-    svd, X_transformed = compute_svd(X, n_components=d)
-    similarity_matrix = cosine_similarity(X_transformed)
+def similaridad_con_producto_escalar_y_norma(X, d):
+    _, X_transformed = compute_svd(X, d)
+    X_transformed_normalized = X_transformed / np.linalg.norm(X_transformed, axis=1)[:, None]
+    similarity_matrix = X_transformed_normalized @ X_transformed_normalized.T
     return similarity_matrix
 
+# def compute_similarity(X, d):
+#     _, X_transformed = compute_svd(X, d)
+#     similarity_matrix = cosine_similarity(X_transformed)
+#     return similarity_matrix
+
 def plot_similarity_matrices(X, d_values):
-    fig, axes = plt.subplots(1, len(d_values), figsize=(15, 5))
+    _, axes = plt.subplots(1, len(d_values), figsize=(15, 5))
     for i, d in enumerate(d_values):
-        similarity_matrix = compute_similarity(X, d)
+        similarity_matrix = similaridad_con_producto_escalar_y_norma(X, d)
         im = axes[i].imshow(similarity_matrix, cmap='hot', interpolation='nearest')
         axes[i].set_title(f'Similarity matrix d={d}')
         plt.colorbar(im, ax=axes[i])
     plt.tight_layout()
     plt.show()
 
-# plot_similarity_matrices(X1, d_values)
+plot_similarity_matrices(X1, d_values)
 
-def find_optimal_d(X, max_d=100, error_threshold=0.1):
+def find_optimal_d(X, max_d=8, error_threshold=0.1):
     errors = []
     for d in range(1, max_d + 1):
         svd, X_transformed = compute_svd(X, n_components=d)
@@ -101,9 +107,14 @@ plt.ylabel('Singular Value')
 plt.title('Singular Values of X1')
 plt.show()
 
+d_values = [i for i in range(1, 20)]
+print(d_values)
 
+
+
+# Conclusiones
 '''
-conclusiones del 2.2
+2.2:
 En cuanto a las conclusiones, al visualizar las imágenes reconstruidas después de la compresión con diferentes 
 valores de d dimensiones, puedes observar cómo la calidad de la reconstrucción mejora a medida que aumenta el 
 número de dimensiones. Con un valor de d bajo, la imagen reconstruida puede ser apenas reconocible, pero a medida que d aumenta
@@ -111,8 +122,8 @@ número de dimensiones. Con un valor de d bajo, la imagen reconstruida puede ser
  información de la imagen original. Sin embargo, también hay un compromiso, ya que un mayor número de dimensiones también significa
  un mayor costo computacional.'''
 
-#2.3
 '''
+2.3:
 Utilizando compresión con distintos valores de d medir la similaridad entre pares de imágenes (con
 alguna métrica de similaridad que decida el autor) en un espacio de baja dimensión d. Analizar cómo
 la similaridad entre pares de imágenes cambia a medida que se utilizan distintos valores de d. Cuales
