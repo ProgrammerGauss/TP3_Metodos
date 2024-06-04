@@ -16,14 +16,13 @@ X = X.astype(float)
 
 y = np.loadtxt('Datasets/y3.txt')
 
-sigma = 1.0
-dimensions = [2]
+sigma = 25
+# dimensions = [2, 6, 10, X.shape[1]]
 
 def similarity(xi, xj, sigma):
     dist_sq = np.linalg.norm(xi - xj) ** 2
     return np.exp(-dist_sq / (2 * sigma ** 2))
 
-# calculo PCA utilizando SVD
 def PCA(X, d):
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
@@ -32,7 +31,9 @@ def PCA(X, d):
     covariance_matrix = np.cov(X_centered.T)  # Note the transpose
     U, S, VT = np.linalg.svd(covariance_matrix, full_matrices=False)
 
-    X_reducido = U[:,:d] @ np.diag(S[:d]) @ VT[:d,:]
+    U_reducido = U[:,:d]
+    X_reducido = X @ U_reducido
+
     return X_reducido
 
 def calculate_similarity_matrix(X, sigma):
@@ -45,25 +46,34 @@ def calculate_similarity_matrix(X, sigma):
 
 # Calcular la matriz de similaridad para los datos originales y los datos reducidos
 def act1_1():
-    for d in dimensions:
+    dimensions = [2, 6, 10]
+    num_dimensions = len(dimensions) + 1  # +1 para los datos originales
 
+    # Calcular la matriz de similaridad para los datos originales
+    similarity_matrix_X = calculate_similarity_matrix(X, sigma)
+
+    # Crear una figura con suficientes subplots para todas las dimensiones
+    fig, axes = plt.subplots(1, num_dimensions, figsize=(5 * num_dimensions, 5), dpi=100)
+
+    # Ajustar el espaciado entre los subplots
+    plt.subplots_adjust(wspace=0.3, hspace=0.3)
+
+    # Mostrar la matriz de similaridad para los datos originales
+    sns.heatmap(similarity_matrix_X, cmap='coolwarm', ax=axes[0])
+    axes[0].set_title('Datos Originales')
+    axes[0].set_xlabel('Índice de Muestra')
+    axes[0].set_ylabel('Índice de Muestra')
+
+    # Para cada dimensión, calcular la matriz de similaridad y mostrarla
+    for i, d in enumerate(dimensions):
         X_reducido = PCA(X, d)
-
-        similarity_matrix_X = calculate_similarity_matrix(X, sigma)
         similarity_matrix_X_reducido = calculate_similarity_matrix(X_reducido, sigma)
+        sns.heatmap(similarity_matrix_X_reducido, cmap='coolwarm', ax=axes[i + 1])
+        axes[i + 1].set_title(f'Datos Reducidos (d={d})')
+        axes[i + 1].set_xlabel('Índice de Muestra')
+        axes[i + 1].set_ylabel('Índice de Muestra')
 
-        # Visualizar las matrices de similaridad
-        plt.figure(figsize=(10, 5))
-
-        plt.subplot(1, 2, 1)
-        sns.heatmap(similarity_matrix_X, cmap='viridis')
-        plt.title(f'Similarity Matrix for Original Data (d={d})')
-
-        plt.subplot(1, 2, 2)
-        sns.heatmap(similarity_matrix_X_reducido, cmap='viridis')
-        plt.title('Similarity Matrix for Reduced Data')
-
-        plt.show()
+    plt.show()
 
 def act1_3():
     def PCA2(X, d):
@@ -157,4 +167,4 @@ def act1_2():
     plt.legend()
     plt.show()
 
-act1_2()
+act1_1()
