@@ -1,46 +1,167 @@
-# from matplotlib.image import *
-# from pylab import *
-# #from google.colab import drive
-# #drive.mount('/content/drive')
-# import matplotlib.pyplot as plt
-# import numpy as np
-# import os
+import numpy as np
+import os
+from sklearn.decomposition import TruncatedSVD
+import matplotlib.pyplot as plt
+from skimage.io import imread
 
-# A = np.random.rand(5,3)
-# U, S, V = np.linalg.svd(A, full_matrices=True)
-# Uhat, Shat, Vhat = np.linalg.svd(A, full_matrices=False)
+def load_images_from_directory(directory_path):
+    file_list = os.listdir(directory_path)
+    images = []
+    for file_name in file_list:
+        img = imread(os.path.join(directory_path, file_name), as_gray=True)
+        images.append(img.flatten())
+    images_matrix = np.array(images)
+    return images_matrix, img.shape
 
-# print(U.shape, S.shape, V.shape)
-# print(Uhat.shape, Shat.shape, Vhat.shape)
+def compute_svd(X, n_components):
+    svd = TruncatedSVD(n_components=n_components)
+    X_transformed = svd.fit_transform(X)
+    return svd, X_transformed
 
-# A = imread('path')
-# print(A.shape)
-# plt.imshow(A)
+def plot_reconstructed_images(X, img_shape, d_values):
+    fig, axes = plt.subplots(2, 3, figsize=(10, 7))  # Reducir el tamaño de la figura
+    axes = axes.ravel()  # Aplanamos el array de ejes para poder indexarlo con un solo índice
 
-# X = np.mean(A, -1)
-# plt.imshow(X, cmap = "gray")
+    for i, d in enumerate(d_values):
+        svd, X_transformed = compute_svd(X, n_components=d)
+        X_approx = svd.inverse_transform(X_transformed)
+        axes[i].imshow(X_approx[0].reshape(img_shape), cmap='gray')  # Mostramos la imagen reconstruida
+        axes[i].set_title(f'Reconstrucción con d={d}', fontsize=10)  # Reducir el tamaño de la fuente del título
+        axes[i].axis('off')  # Eliminar los ejes
 
-# U, S, VT = np.linalg.svd(X, full_matrives = False)
-# S = np.diag(S)
-# print(U.shape, S.shape, VT.shape)
+    # Mostramos la imagen original en la última posición
+    axes[-1].imshow(X[0].reshape(img_shape), cmap='gray')
+    axes[-1].set_title('Original', fontsize=10)  # Reducir el tamaño de la fuente del título
+    axes[-1].axis('off')  # Eliminar los ejes
 
-# j = 0
-# for r in (5, 20 ,100):
-#     Xaproxx = U[:,:r]@S[:r,:r]@VT[:r,:]
-#     plt.figure(j+1)
-#     img = plt.imshow(Xaproxx, cmap = 'gray')
-#     plt.title(f'r={r}')
+    plt.tight_layout()
+    plt.show()
+
+def similaridad_con_producto_escalar_y_norma(X, d):
+    _, X_transformed = compute_svd(X, d)
+    X_transformed_normalized = X_transformed / np.linalg.norm(X_transformed, axis=1)[:, None]
+    similarity_matrix = X_transformed_normalized @ X_transformed_normalized.T
+    return similarity_matrix
+
+def plot_similarity_matrices(X, d_values):
+    num_rows = np.ceil(len(d_values) / 3).astype(int)
+    fig, axes = plt.subplots(num_rows, 3, figsize=(15, 5 * num_rows), dpi=100, constrained_layout=True)
+    axes = axes.ravel()  # Aplanamos el array de ejes para poder indexarlo con un solo índice
+
+    for i, d in enumerate(d_values):
+        similarity_matrix = similaridad_con_producto_escalar_y_norma(X, d)
+        im = axes[i].imshow(similarity_matrix, cmap='coolwarm', interpolation='nearest')
+        axes[i].set_title(f'Matriz de Similaridad d={d}', fontsize=10)
+        axes[i].set_xlabel('Índice de Muestra', fontsize=8)
+        axes[i].set_ylabel('Índice de Muestra', fontsize=8)
+        fig.colorbar(im, ax=axes[i], fraction=0.046, pad=0.04)  # Ajustar la barra de colores al tamaño del gráfico
+
+    # Eliminar los ejes vacíos si no hay suficientes d_values para llenar todas las columnas
+    for j in range(i+1, num_rows*3):
+        fig.delaxes(axes[j])
+
+    plt.show()
+def find_optimal_d(X, max_d=8, error_threshold=0.1):
+    errors = []
+    for d in range(1, max_d + 1):
+        svd, X_transformed = compute_svd(X, n_components=d)
+        X_approx = svd.inverse_transform(X_transformed)
+        error = np.linalg.norm(X - X_approx, 'fro') / np.linalg.norm(X, 'fro')
+        errors.append((d, error))
+        if error <= error_threshold:
+            return d, errors
+    return max_d, errors
+
+dataset1_path = 'Datasets/datasets_imgs'
+dataset2_path = 'Datasets/datasets_imgs_02'
+d_values = [2, 5, 8, 12, 20, 28]
+
+X1, img_shape = load_images_from_directory(dataset1_path)
+X2, _ = load_images_from_directory(dataset2_path)
 
 
+
+optimal_d, errors = find_optimal_d(X2)
+print(f"Optimal d for dataset 2: {optimal_d}")
+
+svd, _ = compute_svd(X2, n_components=optimal_d)
+X1_approx = svd.inverse_transform(svd.transform(X1))
+reconstruction_error = np.linalg.norm(X1 - X1_approx, 'fro') / np.linalg.norm(X1, 'fro')
+print(f"Reconstruction error for dataset 1 using base from dataset 2 with d={optimal_d}: {reconstruction_error}")
+
+d_values, errors = zip(*errors)
+plt.plot(d_values, errors, marker='o')
+plt.axhline(y=0.1, color='r', linestyle='--', label='10% Error Threshold')
+plt.xlabel('Number of dimensions (d)')
+plt.ylabel('Reconstruction Error')
+plt.title('Reconstruction Error vs. Number of Dimensions')
+plt.legend()
+plt.show()
+
+def representacion_svd():
+    X1_svd = np.linalg.svd(X1, full_matrices=False)
+    U1, S1, V1 = X1_svd
+
+    plt.bar(range(1, len(S1) + 1), S1)
+    #labels en español
+    plt.xlabel('Número de dimensión')
+    plt.ylabel('Valor singular')
+    plt.title('Valores singulares de X1')
+    plt.show()
+
+def imagenes_d_fijo():
+    #quiero mostrar como quedan cada una de las imagenes (las 20) pero usando un d fijo
+    d = 5
+    svd, X_transformed = compute_svd(X1, n_components=d)
+    X_approx = svd.inverse_transform(X_transformed)
+    fig, axes = plt.subplots(4, 5, figsize=(15, 10))
+    axes = axes.ravel()
+
+    for i in range(19):
+        axes[i].imshow(X_approx[i].reshape(img_shape), cmap='gray')
+        axes[i].set_title(f'Imagen {i + 1}', fontsize=10)
+        axes[i].axis('off')
+
+    fig.delaxes(axes[19])
+    plt.tight_layout()
+    plt.show()
+
+imagenes_d_fijo()  
+
+
+
+# plot_reconstructed_images(X1, img_shape, d_values)
+# plot_similarity_matrices(X1, d_values)
+# representacion_svd()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Conclusiones
+'''
+2.2:
+En cuanto a las conclusiones, al visualizar las imágenes reconstruidas después de la compresión con diferentes 
+valores de d dimensiones, puedes observar cómo la calidad de la reconstrucción mejora a medida que aumenta el 
+número de dimensiones. Con un valor de d bajo, la imagen reconstruida puede ser apenas reconocible, pero a medida que d aumenta
+, la imagen se vuelve cada vez más similar a la original. Esto se debe a que un mayor número de dimensiones permite capturar más
+ información de la imagen original. Sin embargo, también hay un compromiso, ya que un mayor número de dimensiones también significa
+ un mayor costo computacional.'''
 
 '''
-el archivo dataset_imgs.zip se encuentran n imágenes. Cada imagen es una matriz de p × p que
-puede representarse como un vector x ∈ Rp∗p. A su vez, es posible armar un matriz de datos apilando los
-vectores de cada imagen generando una matriz de n × (p ∗ p). Se desea aprender una representación de baja
-dimensión de las imágenes mediante una descomposición en valores singulares
-
-1. Hacer una representacion basada en  Descomposición de Valores Singulares utilizando las n imágenes
-'''
-
-#como haria lo que me piden en el punto uno? 
-#
+2.3:
+Utilizando compresión con distintos valores de d medir la similaridad entre pares de imágenes (con
+alguna métrica de similaridad que decida el autor) en un espacio de baja dimensión d. Analizar cómo
+la similaridad entre pares de imágenes cambia a medida que se utilizan distintos valores de d. Cuales
+imágenes se encuentran cerca entre si? Alguna interpretación al respecto? Ayuda: ver de utilizar una
+matriz de similaridad para visualizar todas las similaridades par-a-par juntas.'''
