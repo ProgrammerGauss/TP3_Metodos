@@ -143,19 +143,36 @@ importantes y el método utilizado para determinarlas.
 '''
 def act1_2():
     def PCA3(X, d):
-        scaler = StandardScaler()
-        X = scaler.fit_transform(X)
-        X_mean = np.mean(X, axis=0)
-        X_centered = X - X_mean
-        covariance_matrix = np.cov(X_centered.T)  # Note the transpose
-        U, S, VT = np.linalg.svd(covariance_matrix, full_matrices=False)
+        # scaler = StandardScaler()
+        # X = scaler.fit_transform(X)
+        # X_mean = np.mean(X, axis=0)
+        # X_centered = X - X_mean
+        # covariance_matrix = np.cov(X_centered.T)  # Note the transpose
+        # U, S, VT = np.linalg.svd(covariance_matrix, full_matrices=False)
 
-        U_reducido = U[:,:d]
-        S_reducido = np.diag(S[:d])
+        # U_reducido = U[:,:d]
+        # S_reducido = np.diag(S[:d])
+        # V_reducido = VT[:d,:]
+
+        # return U_reducido, S_reducido, V_reducido
+        X_centered = X - np.mean(X, axis=0)
+        U, S, VT = np.linalg.svd(X_centered, full_matrices=False)
+
+        for i in range(len(S)):
+            if S[i] < 1e-10:
+                if i > d:
+                    S = S[:i]
+                    break
+                else:
+                    S[i] = 0
+        
+        S = np.diag(S)
+        U_reducido = U[:,:d] @ S[:d,:d]
+        S_reducido = S[:d,:d]
         V_reducido = VT[:d,:]
 
         return U_reducido, S_reducido, V_reducido
-
+    
     # Calcular las dimensiones más importantes
     U_reducido, S_reducido, V_reducido = PCA3(X, 2)
     V = V_reducido.T
@@ -172,6 +189,18 @@ def act1_2():
     plt.legend()
     plt.show()
 
+
+def grafico_clusters(X):
+    X = PCA(X, 2)
+    Z_centerded = X - np.mean(X, axis=0)
+    plt.scatter(Z_centerded[:,0], Z_centerded[:,1], c = np.arange(0, Z_centerded.shape[0]), cmap='coolwarm')
+    plt.xlabel('Z1')
+    plt.ylabel('Z2')
+    plt.title('Clusters')
+    plt.colorbar()
+    plt.show()
+
 act1_1()
-# act1_2()
-# act1_3()
+act1_2()
+act1_3()
+grafico_clusters(X)
