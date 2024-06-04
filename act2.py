@@ -18,21 +18,20 @@ def compute_svd(X, n_components):
     X_transformed = svd.fit_transform(X)
     return svd, X_transformed
 
-def plot_reconstructed_images(X, img_shape, d_values):
-    fig, axes = plt.subplots(2, 3, figsize=(10, 7))  # Reducir el tamaño de la figura
+def plot_reconstructed_images(X, img_shape):
+    fig, axes = plt.subplots(2, 3, figsize=(15, 10), dpi=100, constrained_layout=True)
     axes = axes.ravel()  # Aplanamos el array de ejes para poder indexarlo con un solo índice
 
-    for i, d in enumerate(d_values):
-        svd, X_transformed = compute_svd(X, n_components=d)
+    for i in range(len(d_values)):
+        svd, X_transformed = compute_svd(X, n_components=d_values[i])
         X_approx = svd.inverse_transform(X_transformed)
-        axes[i].imshow(X_approx[0].reshape(img_shape), cmap='gray')  # Mostramos la imagen reconstruida
-        axes[i].set_title(f'Reconstrucción con d={d}', fontsize=10)  # Reducir el tamaño de la fuente del título
-        axes[i].axis('off')  # Eliminar los ejes
+        axes[i].imshow(X_approx[0].reshape(img_shape), cmap='gray')
+        axes[i].set_title(f'd={d_values[i]}', fontsize=10)
+        axes[i].axis('off')
 
-    # Mostramos la imagen original en la última posición
-    axes[-1].imshow(X[0].reshape(img_shape), cmap='gray')
-    axes[-1].set_title('Original', fontsize=10)  # Reducir el tamaño de la fuente del título
-    axes[-1].axis('off')  # Eliminar los ejes
+    # Eliminar los ejes vacíos si no hay suficientes d_values para llenar todas las columnas
+    for j in range(i+1, 6):
+        fig.delaxes(axes[j])
 
     plt.tight_layout()
     plt.show()
@@ -48,10 +47,10 @@ def plot_similarity_matrices(X, d_values):
     fig, axes = plt.subplots(num_rows, 3, figsize=(15, 5 * num_rows), dpi=100, constrained_layout=True)
     axes = axes.ravel()  # Aplanamos el array de ejes para poder indexarlo con un solo índice
 
-    for i, d in enumerate(d_values):
-        similarity_matrix = similaridad_con_producto_escalar_y_norma(X, d)
+    for i in range(len(d_values)):
+        similarity_matrix = similaridad_con_producto_escalar_y_norma(X, d_values[i])
         im = axes[i].imshow(similarity_matrix, cmap='coolwarm', interpolation='nearest')
-        axes[i].set_title(f'Matriz de Similaridad d={d}', fontsize=10)
+        axes[i].set_title(f'Matriz de Similaridad d={d_values[i]}', fontsize=10)
         axes[i].set_xlabel('Índice de Muestra', fontsize=8)
         axes[i].set_ylabel('Índice de Muestra', fontsize=8)
         fig.colorbar(im, ax=axes[i], fraction=0.046, pad=0.04)  # Ajustar la barra de colores al tamaño del gráfico
@@ -61,6 +60,7 @@ def plot_similarity_matrices(X, d_values):
         fig.delaxes(axes[j])
 
     plt.show()
+
 def find_optimal_d(X, max_d=8, error_threshold=0.1):
     errors = []
     for d in range(1, max_d + 1):
@@ -74,11 +74,11 @@ def find_optimal_d(X, max_d=8, error_threshold=0.1):
 
 dataset1_path = 'Datasets/datasets_imgs'
 dataset2_path = 'Datasets/datasets_imgs_02'
-d_values = [2, 5, 8, 12, 20, 28]
 
 X1, img_shape = load_images_from_directory(dataset1_path)
 X2, _ = load_images_from_directory(dataset2_path)
 
+d_values = [2, 5, 8, 12, 20, 28]
 
 
 optimal_d, errors = find_optimal_d(X2)
@@ -89,14 +89,16 @@ X1_approx = svd.inverse_transform(svd.transform(X1))
 reconstruction_error = np.linalg.norm(X1 - X1_approx, 'fro') / np.linalg.norm(X1, 'fro')
 print(f"Reconstruction error for dataset 1 using base from dataset 2 with d={optimal_d}: {reconstruction_error}")
 
-d_values, errors = zip(*errors)
-plt.plot(d_values, errors, marker='o')
-plt.axhline(y=0.1, color='r', linestyle='--', label='10% Error Threshold')
-plt.xlabel('Number of dimensions (d)')
-plt.ylabel('Reconstruction Error')
-plt.title('Reconstruction Error vs. Number of Dimensions')
-plt.legend()
-plt.show()
+d_values_error, errors = zip(*errors)
+
+def grafico_errores():
+    plt.plot(d_values, errors, marker='o')
+    plt.axhline(y=0.1, color='r', linestyle='--', label='10% Error Threshold')
+    plt.xlabel('Number of dimensions (d)')
+    plt.ylabel('Reconstruction Error')
+    plt.title('Reconstruction Error vs. Number of Dimensions')
+    plt.legend()
+    plt.show()
 
 def representacion_svd():
     X1_svd = np.linalg.svd(X1, full_matrices=False)
@@ -117,6 +119,7 @@ def imagenes_d_fijo():
     fig, axes = plt.subplots(4, 5, figsize=(15, 10))
     axes = axes.ravel()
 
+    plt.title(f'Reconstrucción con d={d}', fontsize=10)
     for i in range(19):
         axes[i].imshow(X_approx[i].reshape(img_shape), cmap='gray')
         axes[i].set_title(f'Imagen {i + 1}', fontsize=10)
@@ -126,13 +129,24 @@ def imagenes_d_fijo():
     plt.tight_layout()
     plt.show()
 
-imagenes_d_fijo()  
+    #mostrar la matriz de similaridad para d=5
+    similarity_matrix = similaridad_con_producto_escalar_y_norma(X1, d)
+    plt.figure(figsize=(6, 6), dpi=100)
+    plt.imshow(similarity_matrix, cmap='coolwarm', interpolation='nearest')
+    plt.title(f'Matriz de Similaridad d={d}', fontsize=10)
+    plt.xlabel('Índice de Muestra', fontsize=8)
+    plt.ylabel('Índice de Muestra', fontsize=8)
+    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.show()
 
 
 
-# plot_reconstructed_images(X1, img_shape, d_values)
-# plot_similarity_matrices(X1, d_values)
+# grafico_errores()
 # representacion_svd()
+# imagenes_d_fijo()
+# plot_reconstructed_images(X1, img_shape, d_values)
+plot_similarity_matrices(X1, d_values)
+
 
 
 
