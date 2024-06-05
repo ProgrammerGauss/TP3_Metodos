@@ -69,7 +69,7 @@ def plot_similarity_matrices(X, d_values):
     for i in range(len(d_values)):
         similarity_matrix = similaridad_con_producto_escalar_y_norma(X, d_values[i])
         im = axes[i].imshow(similarity_matrix, cmap='coolwarm', interpolation='nearest')
-        axes[i].set_title(f'Matriz de Similaridad d={d_values[i]}', fontsize=10)
+        axes[i].set_title(f'Matriz de Similaridad d={d_values[i]}', fontsize=11, fontstyle='italic', fontweight='bold')
         axes[i].set_xlabel('Índice de Muestra', fontsize=8)
         axes[i].set_ylabel('Índice de Muestra', fontsize=8)
         fig.colorbar(im, ax=axes[i], fraction=0.046, pad=0.04)  # Ajustar la barra de colores al tamaño del gráfico
@@ -185,11 +185,18 @@ X2, _ = load_images_from_directory(dataset2_path)
 
 
 # grafico_errores()
-# representacion_svd()
+representacion_svd()
 # imagenes_d_fijo()
 # plot_reconstructed_images(X1, img_shape)
 # plot_similarity_matrices(X1, d_values)
 
+
+#2.4
+'''
+Optimal d for dataset 2: 8
+Reconstruction error for dataset 1 using base from dataset 2 with d=8: 0.7405552594410275
+Conclusion: el unico rango que aproxima con un error menor al 10% es el rango de 8 dimensiones, con un error de 0.74%.
+'''
 
 
 
