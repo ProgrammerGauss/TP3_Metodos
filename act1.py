@@ -60,25 +60,27 @@ def act1_1():
     similarity_matrix_X = calculate_similarity_matrix(X, sigma )
 
     # Crear una figura para los datos originales
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=100)
-    sns.heatmap(similarity_matrix_X, cmap='coolwarm', ax=ax, square=True)
+    fig, ax = plt.subplots(figsize=(8, 6))
+    cax = ax.matshow(similarity_matrix_X, cmap='viridis')
+    fig.colorbar(cax)
     ax.set_title('Datos Originales')
     ax.set_xlabel('Índice de Muestra')
     ax.set_ylabel('Índice de Muestra')
     plt.show()
-
+    
     # Para cada dimensión, calcular la matriz de similaridad y mostrarla en una nueva figura
     for d in dimensions:
         X_reducido = PCA(X, d)
         similarity_matrix_X_reducido = calculate_similarity_matrix(X_reducido, sigma)
-
-        fig, ax = plt.subplots(figsize=(6, 6), dpi=100)
-        sns.heatmap(similarity_matrix_X_reducido, cmap='coolwarm', ax=ax, square=True)
+    
+        fig, ax = plt.subplots(figsize=(6, 6))
+        cax = ax.matshow(similarity_matrix_X_reducido, cmap='viridis')
+        fig.colorbar(cax)
         ax.set_title(f'Datos Reducidos (d={d})')
         ax.set_xlabel('Índice de Muestra')
         ax.set_ylabel('Índice de Muestra')
-        ax.set_xticks(np.arange(0, X_reducido.shape[0], 20))  # Ajustar las marcas de los ejes a la forma de los datos reducidos
-        ax.set_yticks(np.arange(0, X_reducido.shape[0], 20))  # Ajustar las marcas de los ejes a la forma de los datos reducidos
+        # ax.set_xticks(np.arange(0, X_reducido.shape[0], 20))  # Ajustar las marcas de los ejes a la forma de los datos reducidos
+        # ax.set_yticks(np.arange(0, X_reducido.shape[0], 20))  # Ajustar las marcas de los ejes a la forma de los datos reducidos
         plt.show()
 
 def act1_3():
@@ -218,7 +220,7 @@ def grafico_clusters(X):
     plt.colorbar()
     plt.show()
 
-# act1_1()
+act1_1()
 # act1_2()
-act1_3()
-grafico_clusters(X)
+# act1_3()
+# grafico_clusters(X)
