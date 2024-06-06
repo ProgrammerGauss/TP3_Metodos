@@ -16,7 +16,7 @@ X = X.astype(float)
 
 y = np.loadtxt('Datasets/y3.txt')
 
-sigma = 1
+sigma = 3
 
 def similarity(xi, xj, sigma):
     dist_sq = np.linalg.norm(xi - xj) ** 2
@@ -35,7 +35,7 @@ def PCA(X, d):
                 S[i] = 0
     
     S = np.diag(S)
-    return U[:,:d] @ S[:d,:d]
+    return U[:,:d] @ S[:d,:d] @ VT[:d,:] #FALTABA UN @ VT[:d,:] Y LOS CLUSTERS DABAN TODOS IGUALES
 
 def calculate_similarity_matrix(X, sigma):
     pairwise_dists = squareform(pdist(X, 'euclidean'))
@@ -129,7 +129,6 @@ def act1_3():
     # plt.title('Residuos para las mejores muestras')
     # plt.show()
 
-
 def act1_2():
     def PCA3(X, d):
         # scaler = StandardScaler()
@@ -156,7 +155,7 @@ def act1_2():
                     S[i] = 0
         
         S = np.diag(S)
-        U_reducido = U[:,:d] @ S[:d,:d]
+        U_reducido = U[:,:d]
         S_reducido = S[:d,:d]
         V_reducido = VT[:d,:]
 
@@ -165,7 +164,7 @@ def act1_2():
     # Calcular las dimensiones más importantes
     U_reducido, S_reducido, V_reducido = PCA3(X, 2)
     V = V_reducido.T
-    most_important_dimensions = np.argsort(np.abs(V), axis=0)[-2:]
+    most_important_dimensions = np.argsort(np.abs(V), axis=0)[-3:]
     print("Las dimensiones más importantes son: ", most_important_dimensions)
 
     # Crear un gráfico que muestre la importancia de cada dimensión original
@@ -179,8 +178,8 @@ def act1_2():
     plt.show()
 
 
-def grafico_clusters(X):
-    X = PCA(X, 2)
+def grafico_clusters(X, i):
+    X = PCA(X, i)
     Z_centerded = X - np.mean(X, axis=0)
     plt.scatter(Z_centerded[:,0], Z_centerded[:,1], c = np.arange(0, Z_centerded.shape[0]), cmap='coolwarm')
     plt.xlabel('Z1')
@@ -189,7 +188,8 @@ def grafico_clusters(X):
     plt.colorbar()
     plt.show()
 
-# act1_1()
-# act1_2()
+act1_1()
+act1_2()
 act1_3()
-# grafico_clusters(X)
+for i in [2, 6, 10, X.shape[1]]:
+    grafico_clusters(X, i)
