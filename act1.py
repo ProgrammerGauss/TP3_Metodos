@@ -35,7 +35,7 @@ def PCA(X, d):
                 S[i] = 0
     
     S = np.diag(S)
-    return U[:,:d] @ S[:d,:d] @ VT[:d,:] #FALTABA UN @ VT[:d,:] Y LOS CLUSTERS DABAN TODOS IGUALES
+    return U[:,:d] @ S[:d,:d] 
 
 def calculate_similarity_matrix(X, sigma):
     pairwise_dists = squareform(pdist(X, 'euclidean'))
@@ -121,6 +121,13 @@ def act1_3():
     plt.title('Error de predicción para cada dimensión después de aplicar PCA')
     plt.show()
 
+    # plt.figure(figsize=(10, 6))
+    # plt.bar([i for i in range(len(beta_d))], beta_d)
+    # plt.xlabel('Dimensiones')
+    # plt.ylabel('Predicción')
+    # plt.title('Predicción para cada dimensión después de aplicar PCA')
+    # plt.show()
+
     # Crear un gráfico que muestre los residuos para las mejores muestras
     # plt.figure(figsize=(10, 6))
     # plt.bar(range(1, 11), residuals[best_samples])
@@ -188,8 +195,8 @@ def grafico_clusters(X, i):
     plt.colorbar()
     plt.show()
 
-act1_1()
-act1_2()
+# act1_1()
+# act1_2()
 act1_3()
-for i in [2, 6, 10, X.shape[1]]:
-    grafico_clusters(X, i)
+# for i in [2, 6, 10, X.shape[1]]:
+#     grafico_clusters(X, i)
