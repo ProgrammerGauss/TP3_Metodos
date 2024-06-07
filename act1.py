@@ -128,13 +128,16 @@ def act1_3():
     # plt.title('Predicción para cada dimensión después de aplicar PCA')
     # plt.show()
 
+    print(beta_d)
     # Crear un gráfico que muestre los residuos para las mejores muestras
-    # plt.figure(figsize=(10, 6))
-    # plt.bar(range(1, 11), residuals[best_samples])
-    # plt.xlabel('Muestras')
-    # plt.ylabel('Residuos')
-    # plt.title('Residuos para las mejores muestras')
-    # plt.show()
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(len(beta_d)), beta_d.flatten(), marker='o', linestyle='-')
+    plt.xlabel('Dimensiones')
+    plt.ylabel('Pesos (β)')
+    plt.title('Pesos asignados a cada dimensión original')
+    ticks_location = np.linspace(0, len(beta_d) - 1, 15, dtype=int)  
+    plt.xticks(ticks_location, ticks_location + 1, ha='right')
+    plt.show()
 
 def act1_2():
     def PCA3(X, d):
@@ -196,7 +199,7 @@ def grafico_clusters(X, i):
     plt.show()
 
 # act1_1()
-# act1_2()
-act1_3()
+act1_2()
+# act1_3()
 # for i in [2, 6, 10, X.shape[1]]:
 #     grafico_clusters(X, i)
