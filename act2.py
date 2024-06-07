@@ -37,7 +37,7 @@ def plot_reconstructed_images(X, img_shape):
         axes[i].axis('off')
 
     # Eliminar los ejes vacíos si no hay suficientes d_values para llenar todas las columnas
-    for j in range(i+1, 6):
+    for j in range(i, 6):
         fig.delaxes(axes[j])
 
     plt.tight_layout()
@@ -125,7 +125,7 @@ def imagenes_d_fijo():
     fig.suptitle(f'Reconstrucción con d={d}', fontsize=10)
     for i in range(19):
         axes[i].imshow(X_approx[i].reshape(img_shape), cmap='gray')
-        axes[i].set_title(f'Imagen {i + 1}', fontsize=10)
+        axes[i].set_title(f'Imagen {i}', fontsize=10)
         axes[i].axis('off')
     
     fig.delaxes(axes[19])
@@ -143,26 +143,38 @@ def imagenes_d_fijo():
     plt.show()
 
 
-    #mostrar solo las imagenes 2 y 17 cada una con calculada con dimension 5
+    #mostrar solo las imagenes 0 y 17 cada una con calculada con dimension 5
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    fig.suptitle('Reconstrucción de Imágenes 12 y 8 con d=5', fontsize=10)
-    axes[0].imshow(X_approx[11].reshape(img_shape), cmap='gray')
-    axes[0].set_title('Imagen 12', fontsize=10)
+    fig.suptitle('Reconstrucción de Imágenes 0 y 17 con d=5', fontsize=30)
+    axes[0].imshow(X_approx[0].reshape(img_shape), cmap='gray')
+    axes[0].set_title('Imagen 0', fontsize=30)
     axes[0].axis('off')
-    axes[1].imshow(X_approx[7].reshape(img_shape), cmap='gray')
-    axes[1].set_title('Imagen 8', fontsize=10)
+    axes[1].imshow(X_approx[17].reshape(img_shape), cmap='gray')
+    axes[1].set_title('Imagen 17', fontsize=30)
     axes[1].axis('off')
     plt.tight_layout(rect=[0, 0, 1, 0.9])  # Ajusta el layout para dejar espacio para el título
     plt.show()
 
-    #mostrar solo las imagenes 2 y 17 cada una con calculada con dimension 5
+    #mostrar solo las imagenes 3 y 15 cada una con calculada con dimension 5
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    fig.suptitle('Reconstrucción de Imágenes 2 y 17 con d=5', fontsize=10)
-    axes[0].imshow(X_approx[1].reshape(img_shape), cmap='gray')
-    axes[0].set_title('Imagen 2', fontsize=10)
+    fig.suptitle('Reconstrucción de Imágenes 3 y 15 con d=5', fontsize=30)
+    axes[0].imshow(X_approx[3].reshape(img_shape), cmap='gray')
+    axes[0].set_title('Imagen 3', fontsize=30)
     axes[0].axis('off')
-    axes[1].imshow(X_approx[17].reshape(img_shape), cmap='gray')
-    axes[1].set_title('Imagen 17', fontsize=10)
+    axes[1].imshow(X_approx[15].reshape(img_shape), cmap='gray')
+    axes[1].set_title('Imagen 15', fontsize=30)
+    axes[1].axis('off')
+    plt.tight_layout(rect=[0, 0, 1, 0.9])  # Ajusta el layout para dejar espacio para el título
+    plt.show()
+    
+    #mostrar solo las imagenes 0 y 16 cada una con calculada con dimension 5
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    fig.suptitle('Reconstrucción de Imágenes 0 y 16 con d=5', fontsize=30)
+    axes[0].imshow(X_approx[0].reshape(img_shape), cmap='gray')
+    axes[0].set_title('Imagen 0', fontsize=30)
+    axes[0].axis('off')
+    axes[1].imshow(X_approx[16].reshape(img_shape), cmap='gray')
+    axes[1].set_title('Imagen 16', fontsize=30)
     axes[1].axis('off')
     plt.tight_layout(rect=[0, 0, 1, 0.9])  # Ajusta el layout para dejar espacio para el título
     plt.show()
@@ -171,42 +183,8 @@ X1, img_shape = load_images_from_directory(dataset1_path)
 X2, _ = load_images_from_directory(dataset2_path)
 
 
-
 grafico_errores()
 representacion_svd()
 imagenes_d_fijo()
 plot_reconstructed_images(X1, img_shape)
 plot_similarity_matrices(X1, d_values)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Conclusiones
-'''
-2.2:
-En cuanto a las conclusiones, al visualizar las imágenes reconstruidas después de la compresión con diferentes 
-valores de d dimensiones, puedes observar cómo la calidad de la reconstrucción mejora a medida que aumenta el 
-número de dimensiones. Con un valor de d bajo, la imagen reconstruida puede ser apenas reconocible, pero a medida que d aumenta
-, la imagen se vuelve cada vez más similar a la original. Esto se debe a que un mayor número de dimensiones permite capturar más
- información de la imagen original. Sin embargo, también hay un compromiso, ya que un mayor número de dimensiones también significa
- un mayor costo computacional.'''
-
-'''
-2.3:
-Utilizando compresión con distintos valores de d medir la similaridad entre pares de imágenes (con
-alguna métrica de similaridad que decida el autor) en un espacio de baja dimensión d. Analizar cómo
-la similaridad entre pares de imágenes cambia a medida que se utilizan distintos valores de d. Cuales
-imágenes se encuentran cerca entre si? Alguna interpretación al respecto? Ayuda: ver de utilizar una
-matriz de similaridad para visualizar todas las similaridades par-a-par juntas.'''

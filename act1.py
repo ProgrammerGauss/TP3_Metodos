@@ -121,14 +121,6 @@ def act1_3():
     plt.title('Error de predicción para cada dimensión después de aplicar PCA')
     plt.show()
 
-    # plt.figure(figsize=(10, 6))
-    # plt.bar([i for i in range(len(beta_d))], beta_d)
-    # plt.xlabel('Dimensiones')
-    # plt.ylabel('Predicción')
-    # plt.title('Predicción para cada dimensión después de aplicar PCA')
-    # plt.show()
-
-    print(beta_d)
     # Crear un gráfico que muestre los residuos para las mejores muestras
     plt.figure(figsize=(10, 6))
     plt.plot(range(len(beta_d)), beta_d.flatten(), marker='o', linestyle='-')
@@ -141,16 +133,6 @@ def act1_3():
 
 def act1_2():
     def PCA3(X, d):
-        # scaler = StandardScaler()
-        # X = scaler.fit_transform(X)
-        # X_mean = np.mean(X, axis=0)
-        # X_centered = X - X_mean
-        # covariance_matrix = np.cov(X_centered.T)  # Note the transpose
-        # U, S, VT = np.linalg.svd(covariance_matrix, full_matrices=False)
-
-        # U_reducido = U[:,:d]
-        # S_reducido = np.diag(S[:d])
-        # V_reducido = VT[:d,:]
 
         # return U_reducido, S_reducido, V_reducido
         X_centered = X - np.mean(X, axis=0)
@@ -198,8 +180,7 @@ def grafico_clusters(X, i):
     plt.colorbar()
     plt.show()
 
-# act1_1()
+act1_1()
 act1_2()
-# act1_3()
-# for i in [2, 6, 10, X.shape[1]]:
-#     grafico_clusters(X, i)
+act1_3()
+grafico_clusters(X, 2)
