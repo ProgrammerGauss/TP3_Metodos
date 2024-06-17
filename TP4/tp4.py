@@ -46,7 +46,10 @@ def main():
     x0 = np.random.rand(d)
     s = 1 / np.max(np.linalg.eigvals(np.dot(A.T, A)))
     n_iter = 1000
-    delta = 1e-2 * np.max(np.linalg.eigvals(np.dot(A.T, A)))
+    delta = 1e-2 * np.linalg.svd(A)[1][0]
+
+    def x_opt():
+        return np.dot(np.linalg.pinv(A), b)
 
     def variacion_de_step(A, b, x0, n_iter):
         A = A / np.linalg.norm(A)
@@ -68,15 +71,15 @@ def main():
         plt.xlabel('step')
         plt.ylabel('Error')
         plt.legend()
-        # plt.xscale('log')
+        plt.xscale('log')
         plt.yscale('log')
         plt.show()
     
     def variacion_de_delta(A, b, x0, n_iter):
-        
+        S = np.linalg.svd(A)[1] # Ya vienen ordenados de mayor a menor
         deltas = []
-        for i in range(1, 11):
-            delta = 1e-2 * np.partition(np.linalg.eigvals(np.dot(A.T, A)), -i)[-i]
+        for i in range(len(S)):
+            delta = 1e-2 * S[i]
             deltas.append(delta)
         errores = []
         for delta in deltas:
@@ -85,30 +88,57 @@ def main():
 
         #hacer que deltas_etiquetas tenga para cada delta, la etiqueta: 10^-2 simbolo de sigma y el numero de la lista deltas
         x = np.arange(len(deltas))  # las ubicaciones de las etiquetas
-        plt.rcParams['text.usetex'] = True
+        # plt.rcParams['text.usetex'] = True
         plt.figure()
         plt.title('Error en función de delta')
-        plt.bar(x, errores, tick_label=[f'$10^-2 \sigma_{i}$' for i in range(1, 11)])
+        plt.bar(x, errores, tick_label=[f'$\sigma_{i}/100$' for i in range(len(deltas))])
         
         plt.ylabel('Error')
         plt.xlabel('Delta')
         plt.yscale('log')
-        plt.xticks(rotation=45)
+        plt.xticks(rotation=10)
         
         plt.show()
 
     def variacion_de_iteraciones(A, b, x0):
-        pass
+        
+        def y(x):
+            return np.linalg.norm(np.dot(A, x) - b)
+        
+        iters = [5, 30, 150, 1000, 5000, 15000]
+        plt.figure()
+
+        for i in range(len(iters)):
+            plt.subplot(2, 3, i+1)
+            y1 = (gradiente_descendente(A, b, s, x0, iters[i]))
+            y2 = (gradiente_descendente_reg(A, b, s, x0, iters[i], delta))
+            y3 = (SVD(A, b))
+            y4 = (np.dot(np.linalg.inv(np.dot(A.T, A)), np.dot(A.T, b)))
+            plt.title(f'Errores con {iters[i]} iteraciones')
+            plt.plot(y1, label='Gradiente descendente')
+            plt.plot(y2, label='Gradiente descendente regularizado')
+            plt.plot(y3, label='SVD')
+            plt.plot(y4, label='Cuadrados mínimos')
+            plt.plot(x_opt(), label='x', linestyle='--', color='black')
+            plt.xlabel('x')
+            plt.ylabel('Errores')
+            plt.yscale('log')
+        plt.tight_layout()
+        plt.show()
 
     def comparacion_de_soluciones(A, b, x0, n_iter, delta):
+
+        def y(x):
+            return np.linalg.norm(np.dot(A, x) - b)
+
         x = gradiente_descendente(A, b, s, x0, n_iter)
         x_reg = gradiente_descendente_reg(A, b, s, x0, n_iter, delta)
         x_svd = SVD(A, b)
-        print('Error gradiente descendente:', np.linalg.norm(np.dot(A, x) - b))
-        print('Error gradiente descendente regularizado:', np.linalg.norm(np.dot(A, x_reg) - b))
-        print('Error SVD:', np.linalg.norm(np.dot(A, x_svd) - b))
         x_least_squares = np.dot(np.linalg.inv(np.dot(A.T, A)), np.dot(A.T, b))
-        print('Error cuadrados mínimos:', np.linalg.norm(np.dot(A, x_least_squares) - b))
+        print('Error gradiente descendente:', y(x))
+        print('Error gradiente descendente regularizado:', y(x_reg))
+        print('Error SVD:', y(x_svd))
+        print('Error cuadrados mínimos:', y(x_least_squares))
 
         #graficos
         plt.figure()
@@ -116,15 +146,18 @@ def main():
         plt.plot(x, label='Gradiente descendente')
         plt.plot(x_reg, label='Gradiente descendente regularizado')
         plt.plot(x_svd, label='SVD')
-        # plt.plot(x_least_squares, label='Cuadrados mínimos')
+        plt.plot(x_least_squares, label='Cuadrados mínimos')
+        plt.plot(x_opt(), label='x', linestyle='--', color='black')
         plt.xlabel('x')
         plt.yscale('log')    
         plt.ylabel('y')
         plt.legend()
         plt.show()
 
-    # variacion_de_step(A, b, x0, n_iter)
-    # variacion_de_delta(A, b, x0, n_iter)
+    variacion_de_step(A, b, x0, n_iter)
+    variacion_de_delta(A, b, x0, n_iter)
+    comparacion_de_soluciones(A, b, x0, n_iter, delta)
+    variacion_de_iteraciones(A, b, x0)
 
 
 if __name__ == '__main__':
