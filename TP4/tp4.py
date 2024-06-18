@@ -6,27 +6,27 @@ import scipy.sparse.linalg as spl
 import time
 
 def gradiente_de_funcion_de_costo(A, b, x):
-    np.seterr(over='ignore')
     result = np.dot(A.T, np.dot(A, x) - b) * 2
-    np.seterr(over='warn')
     return result
 
 def gradiente_de_funcion_de_costo_reg(A, b, x, delta):
-    np.seterr(over='ignore')
-    result = np.dot(A.T, np.dot(A, x) - b) * 2 + 2 * delta * x
-    np.seterr(over='warn')
-    return result
-def gradiente_descendente(A, b, s, x0, n_iter):
-    x = x0
-    for i in range(n_iter):
-        x = x - s * gradiente_de_funcion_de_costo(A, b, x)
-    return x
+    return 2 * (A.T @ (A @ x - b) + delta * x)
 
-def gradiente_descendente_reg(A, b, s, x0, n_iter, delta):
+def gradiente_descendente(A, b, s, x0, n_iter):
+    X_totales = []
     x = x0
-    for i in range(n_iter):
+    for _ in range(n_iter):
+        x = x - s * gradiente_de_funcion_de_costo(A, b, x)
+        X_totales.append(x)
+    return X_totales
+
+def gradiente_descendente_reg(A, b, s, x0, delta, n_iter):
+    X_totales = []
+    x = x0
+    for _ in range(n_iter):
         x = x - s * gradiente_de_funcion_de_costo_reg(A, b, x, delta)
-    return x
+        X_totales.append(x)
+    return X_totales
 
 def SVD(A, b):
     U, S, Vt = np.linalg.svd(A, full_matrices=False)
@@ -46,7 +46,7 @@ def main():
     x0 = np.random.rand(d)
     s = 1 / np.max(np.linalg.eigvals(np.dot(A.T, A)))
     n_iter = 1000
-    delta = 1e-2 * np.linalg.svd(A)[1][0]
+    delta = 1e-1 * np.linalg.svd(A)[1][0]
 
     def x_opt():
         return np.dot(np.linalg.pinv(A), b)
@@ -76,12 +76,9 @@ def main():
         plt.show()
     
     def variacion_de_delta(A, b, x0, n_iter):
-        S = np.linalg.svd(A)[1] # Ya vienen ordenados de mayor a menor
-        deltas = []
-        for i in range(len(S)):
-            delta = 1e-2 * S[i]
-            deltas.append(delta)
+        deltas = [1e-2, 1e-3, 1e-4, 1e-5, delta]
         errores = []
+  
         for delta in deltas:
             x_reg = gradiente_descendente_reg(A, b, s, x0, n_iter, delta)
             errores.append(calcular_error(A, b, x_reg))
@@ -91,7 +88,7 @@ def main():
         # plt.rcParams['text.usetex'] = True
         plt.figure()
         plt.title('Error en función de delta')
-        plt.bar(x, errores, tick_label=[f'$\sigma_{i}/100$' for i in range(len(deltas))])
+        plt.bar(x, errores, tick_label=deltas)
         
         plt.ylabel('Error')
         plt.xlabel('Delta')
@@ -100,64 +97,69 @@ def main():
         
         plt.show()
 
-    def variacion_de_iteraciones(A, b, x0):
-        
-        def y(x):
-            return np.linalg.norm(np.dot(A, x) - b)
-        
-        iters = [5, 30, 150, 1000, 5000, 15000]
-        plt.figure()
-
-        for i in range(len(iters)):
-            plt.subplot(2, 3, i+1)
-            y1 = (gradiente_descendente(A, b, s, x0, iters[i]))
-            y2 = (gradiente_descendente_reg(A, b, s, x0, iters[i], delta))
-            y3 = (SVD(A, b))
-            y4 = (np.dot(np.linalg.inv(np.dot(A.T, A)), np.dot(A.T, b)))
-            plt.title(f'Errores con {iters[i]} iteraciones')
-            plt.plot(y1, label='Gradiente descendente')
-            plt.plot(y2, label='Gradiente descendente regularizado')
-            plt.plot(y3, label='SVD')
-            plt.plot(y4, label='Cuadrados mínimos')
-            plt.plot(x_opt(), label='x', linestyle='--', color='black')
-            plt.xlabel('x')
-            plt.ylabel('Errores')
-            plt.yscale('log')
-        plt.tight_layout()
-        plt.show()
-
-    def comparacion_de_soluciones(A, b, x0, n_iter, delta):
-
-        def y(x):
-            return np.linalg.norm(np.dot(A, x) - b)
-
-        x = gradiente_descendente(A, b, s, x0, n_iter)
-        x_reg = gradiente_descendente_reg(A, b, s, x0, n_iter, delta)
+    def variacion_de_iteraciones():
+        gradiente_dec = gradiente_descendente(A, b, s, x0, n_iter)
+        gradiente_dec_reg = gradiente_descendente_reg(A, b, s, x0, delta, n_iter)
         x_svd = SVD(A, b)
-        x_least_squares = np.dot(np.linalg.inv(np.dot(A.T, A)), np.dot(A.T, b))
-        print('Error gradiente descendente:', y(x))
-        print('Error gradiente descendente regularizado:', y(x_reg))
-        print('Error SVD:', y(x_svd))
-        print('Error cuadrados mínimos:', y(x_least_squares))
 
-        #graficos
+        eje_x = np.arange(n_iter)
+        errores_gradiente_dec = np.zeros(n_iter)
+        errores_gradiente_dec_reg = np.zeros(n_iter)
+        errores_x_svd = np.zeros(n_iter)
+
+        for i in range(n_iter):
+            errores_gradiente_dec[i] = calcular_error(A, b, gradiente_dec[i])
+            errores_gradiente_dec_reg[i] = calcular_error(A, b, gradiente_dec_reg[i])
+            errores_x_svd[i] = calcular_error(A, b, x_svd)
+
         plt.figure()
-        plt.title('Comparación de soluciones')
-        plt.plot(x, label='Gradiente descendente')
-        plt.plot(x_reg, label='Gradiente descendente regularizado')
-        plt.plot(x_svd, label='SVD')
-        plt.plot(x_least_squares, label='Cuadrados mínimos')
-        plt.plot(x_opt(), label='x', linestyle='--', color='black')
-        plt.xlabel('x')
-        plt.yscale('log')    
-        plt.ylabel('y')
+        plt.title('Variación de iteraciones')
+        plt.plot(eje_x, errores_gradiente_dec, label='Gradiente descendente')
+        plt.plot(eje_x, errores_gradiente_dec_reg, label='Gradiente descendente regularizado')
+        plt.plot(eje_x, errores_x_svd, label='SVD')
+        plt.xlabel('Iteraciones')
+        plt.ylabel('Error')
+        plt.yscale('log')
         plt.legend()
         plt.show()
 
-    variacion_de_step(A, b, x0, n_iter)
-    variacion_de_delta(A, b, x0, n_iter)
-    comparacion_de_soluciones(A, b, x0, n_iter, delta)
-    variacion_de_iteraciones(A, b, x0)
+        
+
+
+    def comparacion_de_soluciones(A, b, x0, n_iter):
+        x = [x0]
+        for i in range(1, n_iter + 1):
+            x0 = x[i-1]
+            x.append(gradiente_descendente(A, b, s, x0))
+    
+        x_reg = [x0]
+        for i in range(1, n_iter + 1):
+            x0 = x_reg[i-1]
+            x_reg.append(gradiente_descendente_reg(A, b, s, x0, delta))
+    
+        x_svd = [SVD(A, b) for _ in range(n_iter + 1)]
+    
+        eje_x = np.arange(n_iter + 1)
+        #graficos
+        plt.figure()
+        plt.title('Comparación de soluciones')
+        plt.plot(eje_x, [np.linalg.norm(xi) for xi in x], label='Gradiente descendente')
+        plt.plot(eje_x, [np.linalg.norm(xi) for xi in x_reg], label='Gradiente descendente regularizado')
+        plt.plot(eje_x, [np.linalg.norm(xi) for xi in x_svd], label='SVD')
+        plt.xlabel('Iteraciones')
+        plt.ylabel('Error')
+        plt.yscale('log')    
+        plt.legend()
+        plt.show()
+
+    
+    
+
+    # variacion_de_step(A, b, x0, n_iter)
+    # variacion_de_delta(A, b, x0, n_iter)
+    # comparacion_de_soluciones(A, b, x0, n_iter)
+    variacion_de_iteraciones()
+
 
 
 if __name__ == '__main__':
