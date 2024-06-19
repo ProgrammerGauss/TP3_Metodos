@@ -39,7 +39,7 @@ def grad_F2(x, delta):
     return grad_F(x) + 2 * delta * x
 
 # Algoritmo de gradiente descendente para F(x)
-def gradient_descent_F(A, b, x_init, iterations):
+def gradient_descent_F(A, b, s, x_init, iterations):
     x = x_init
     history_F = []
     history_norm_x = []
@@ -54,7 +54,7 @@ def gradient_descent_F(A, b, x_init, iterations):
     return x, history_F, history_norm_x, history_residual
 
 # Algoritmo de gradiente descendente para F2(x)
-def gradient_descent_F2(A, b, x_init, iterations, delta):
+def gradient_descent_F2(A, b, s, x_init, iterations, delta):
     x = x_init
     history_F2 = []
     history_norm_x = []
@@ -163,6 +163,9 @@ def grafico_norma_x():
     plt.grid()
     plt.show()
 
+def relative_error(x_iter):
+    return np.linalg.norm(x_iter - x_svd) / np.linalg.norm(x_svd)
+
 def grafico_error_relativo():
     x = x_init.copy()
     history_F = []
@@ -191,22 +194,82 @@ def grafico_error_relativo():
         history_norm_x_reg.append(np.linalg.norm(x_reg) ** 2)
         history_residual_reg.append(np.linalg.norm(A @ x_reg - b) ** 2)
 
-    relative_errors = [np.linalg.norm(x - x_svd) / np.linalg.norm(x_svd) for x in history_F]
-    relative_errors_reg = [np.linalg.norm(x - x_svd) / np.linalg.norm(x_svd) for x in history_F_reg]
+    relative_errors = [relative_error(x) for x in history_F]
+    relative_errors_reg = [relative_error(x) for x in history_F_reg]
 
     plt.figure(figsize=(10, 6))
     plt.plot(range(iterations), relative_errors, label='Error relativo (Decenso por gradiente)')
     plt.plot(range(iterations), relative_errors_reg, label='Error relativo (Decenso por gradiente regularizado)')
     plt.xlabel('Iteraciones')
-    plt.ylabel('Error relativo')
+    plt.ylabel('Error de x relativo a x_opt')
     plt.yscale('log')
     plt.title('Error relativo vs Iteraciones')
     plt.legend()
     plt.grid()
     plt.show()
 
+def variacion_de_step(A, b, x0, n_iter):
+    A = A / np.linalg.norm(A)
+    b = b / np.linalg.norm(b)
+    x0 = x0 / np.linalg.norm(x0)
 
-grafico_costo_convergencia()
-grafico_norma_convergencia()
-grafico_norma_x()
-grafico_error_relativo()
+    steps = [1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, s]
+    errores = []
+    for step in steps:
+        x = gradient_descent_F(A, b, step, x0, n_iter)[0]
+        x_reg = gradient_descent_F2(A, b, step, x0, n_iter, delta2)[0]
+        errores.append([relative_error(x), relative_error(x_reg)])
+    errores = np.array(errores)
+
+    num_steps = len(steps)
+    bar_width = 0.4
+    index = np.arange(num_steps)
+    etiquetas = ['10^-3', '10^-4', '10^-5', '10^-6', '10^-7', '10^-8', 's']
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bar1 = ax.bar(index, errores[:, 0], bar_width, label='Gradiente Descendente', edgecolor='black')
+    bar2 = ax.bar(index + bar_width, errores[:, 1], bar_width, label='Gradiente Descendente Regularizado', edgecolor='black')
+
+    ax.set_xlabel('Steps')
+    ax.set_ylabel('Errores')
+    ax.set_title('Comparación de Errores para Diferentes Métodos')
+    ax.set_xticks(index + bar_width)
+    ax.set_xticklabels(etiquetas)
+    ax.legend()
+    
+    plt.show()
+
+def variacion_de_delta(A, b, x0, n_iter):
+
+    S = np.linalg.svd(A)[1] # Ya vienen ordenados de mayor a menor
+    deltas = []
+    for i in range(len(S)):
+        delta = 1e-2 * S[i]
+        deltas.append(delta)
+    errores = []
+    for delta in deltas:
+        x_reg = gradient_descent_F2(A, b, s, x0, n_iter, delta)[0]
+        errores.append(relative_error(x_reg))
+
+    #hacer que deltas_etiquetas tenga para cada delta, la etiqueta: 10^-2 simbolo de sigma y el numero de la lista deltas
+    x = np.arange(len(deltas))  # las ubicaciones de las etiquetas
+    # plt.rcParams['text.usetex'] = True
+    plt.figure()
+    plt.title('Error en función de delta')
+    plt.bar(x, errores, tick_label=[f'$\sigma_{i}/100$' for i in range(len(deltas))])
+    
+    plt.ylabel('Error')
+    plt.xlabel('Delta')
+    plt.yscale('log')
+    plt.xticks(rotation=10)
+    
+    plt.show()
+
+
+# grafico_costo_convergencia()
+# grafico_norma_convergencia()
+# grafico_norma_x()
+# grafico_error_relativo()
+# variacion_de_delta(A, b, x_init, iterations)
+variacion_de_step(A, b, x_init, iterations)

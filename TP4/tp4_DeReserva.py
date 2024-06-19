@@ -18,13 +18,13 @@ def gradiente_de_funcion_de_costo_reg(A, b, x, delta):
     return result
 
 def gradiente_descendente(A, b, s, x0, n_iter):
-    x = x0
+    x = x0.copy()
     for i in range(n_iter):
         x = x - s * gradiente_de_funcion_de_costo(A, b, x)
     return x
 
 def gradiente_descendente_reg(A, b, s, x0, n_iter, delta):
-    x = x0
+    x = x0.copy()
     for i in range(n_iter):
         x = x - s * gradiente_de_funcion_de_costo_reg(A, b, x, delta)
     return x
@@ -125,10 +125,6 @@ def main():
         plt.show()
 
     def variacion_de_iteraciones(A, b, x0):
-        
-        def y(x):
-            return np.linalg.norm(np.dot(A, x) - b)
-        
         iters = [5, 30, 150, 1000, 5000, 15000]
         plt.figure()
 
@@ -179,9 +175,9 @@ def main():
         plt.show()
 
     variacion_de_step(A, b, x0, n_iter)
-    # variacion_de_delta(A, b, x0, n_iter)
-    # comparacion_de_soluciones(A, b, x0, n_iter, delta)
-    # variacion_de_iteraciones(A, b, x0)
+    variacion_de_delta(A, b, x0, n_iter)
+    comparacion_de_soluciones(A, b, x0, n_iter, delta)
+    variacion_de_iteraciones(A, b, x0)
 
 
 if __name__ == '__main__':
