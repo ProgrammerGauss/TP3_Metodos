@@ -151,14 +151,13 @@ def main():
         plt.yscale('log')    
         plt.legend()
         plt.show()
-
     
     
 
     # variacion_de_step(A, b, x0, n_iter)
     # variacion_de_delta(A, b, x0, n_iter)
     # comparacion_de_soluciones(A, b, x0, n_iter)
-    variacion_de_iteraciones()
+    # variacion_de_iteraciones()
 
 
 
