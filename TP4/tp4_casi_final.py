@@ -91,8 +91,9 @@ def grafico_costo_convergencia():
     plt.figure(figsize=(10, 6))
     plt.plot(range(iterations), history_F, label='Decenso por gradiente')
     plt.plot(range(iterations),history_F_reg, label='Decenso por gradiente regularizado')
-    plt.axhline(y=costo_svd, color='r', linestyle='--', label='solucion SVD')
+    # plt.axhline(y=costo_svd, color='r', linestyle='--', label='solucion SVD')
     plt.yscale('log')
+    plt.xscale('log')
     plt.xlabel('Iteraciones', fontsize=18)
     plt.ylabel('F(x)', fontsize=18)
     plt.title('F(x) vs Iteraciones', fontsize=20)
@@ -155,6 +156,7 @@ def grafico_norma_x():
     plt.plot(history_x, label='Decenso por gradiente')
     plt.plot(history_x_reg, label='Decenso por gradiente regularizado')
     plt.yscale('log')
+    plt.xscale('log')
     plt.xlabel('Iteraciones', fontsize=18)
     plt.ylabel('Norma de x', fontsize=18)
     plt.title('Evolución de la norma de x a lo largo de las iteraciones', fontsize=20)
@@ -172,7 +174,7 @@ def grafico_error_relativo():
     x_reg = x_init.copy()
     history_F_reg = []
 
-    for _ in range(iterations):
+    for _ in range(iterations+1000):
         grad = grad_F(x)
         if np.any(np.isnan(grad)) or np.any(np.isinf(grad)):
             break
@@ -189,11 +191,12 @@ def grafico_error_relativo():
     relative_errors_reg = [relative_error(x) for x in history_F_reg]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(range(iterations), relative_errors, label='Error relativo (Decenso por gradiente)')
-    plt.plot(range(iterations), relative_errors_reg, label='Error relativo (Decenso por gradiente regularizado)')
+    plt.plot(range(iterations+1000), relative_errors, label='Error relativo (Decenso por gradiente)')
+    plt.plot(range(iterations+1000), relative_errors_reg, label='Error relativo (Decenso por gradiente regularizado)')
     plt.xlabel('Iteraciones', fontsize=18)
     plt.ylabel('Error de x relativo a x_opt', fontsize=18)
     plt.yscale('log')
+    plt.xscale('log')
     plt.title('Error relativo vs Iteraciones', fontsize=20)
     plt.legend(fontsize=18)
     plt.grid()
@@ -231,34 +234,93 @@ def variacion_de_step(A, b, x0, n_iter):
     
     plt.show()
 
-def variacion_de_delta(A, b, x0, n_iter):
+def variacion_de_delta(A, b, x0, n_iter, delta2= delta2):
 
-    S = np.linalg.svd(A)[1] # Ya vienen ordenados de mayor a menor
-    deltas = []
-    for i in range(len(S)):
-        delta = 1e-2 * S[i]
-        deltas.append(delta)
+    deltas = [delta2 * 10**i for i in range(-6,-1 )]
     errores = []
     for delta in deltas:
         x_reg = gradient_descent_F2(A, b, s, x0, n_iter, delta)[0]
         errores.append(relative_error(x_reg))
 
     x = np.arange(len(deltas))
-    plt.figure()
+    plt.figure(figsize=(12, 8))
     plt.title('Error en función de delta', fontsize=20)
-    plt.bar(x, errores, tick_label=[f'$\sigma_{i}/100$' for i in range(len(deltas))])
-    
-    plt.ylabel('Error', fontsize=18)
-    plt.xlabel('Delta', fontsize=18)
+    plt.bar(x, errores, tick_label=[f'$10^{{{i}}}\\  \\sigma_{{max}} $' for i in range(-6, -1)], edgecolor='black', color='orange', )
+    plt.xticks(rotation=35)
+    plt.tick_params(axis='x', labelsize=14)  # Ajusta el tamaño de la fuente a 14
+    #cambiar los ticks de y
+    ticks_y = np.logspace(np.log10(min(errores)), np.log10(max(errores)), num=5)  # Genera 5 ticks distribuidos logarítmicamente entre el mínimo y máximo de 'errores'
+    plt.yticks(ticks_y, labels=[f"{tick:.2e}" for tick in ticks_y])  # Formatea los ticks para que se muestren en notación científica
+
+
+    plt.ylabel('Error', fontsize=16)
+    plt.xlabel('Delta', fontsize=16)
     plt.yscale('log')
-    plt.xticks(rotation=10)
     
     plt.show()
 
+    #Grafico de los F2(x) con los diferentes deltas vs iteraciones
+    # for delta in deltas:
+    #     x_reg, history_F2, history_norm_x, history_residual = gradient_descent_F2(A, b, s, x0, n_iter, delta)
+    #     plt.plot(range(n_iter), history_F2, label=f'${{{delta / delta2}}}\\sigma_{{max}}$')
+    # plt.xlabel('Iteraciones', fontsize=18)
+    # plt.ylabel('F2(x)', fontsize=18)
+    # plt.title('F2(x) vs Iteraciones', fontsize=20)
+    # plt.xscale('log')
+    # plt.yscale('log')
+    # plt.legend()
+    # plt.grid()
+    # plt.show()
 
-grafico_costo_convergencia()
-grafico_norma_convergencia()
-grafico_norma_x()
-grafico_error_relativo()
+
+
+
+
+def grafico_F(A, b, x0, n_iter):
+    x = x0
+    history_F = []
+    for _ in range(n_iter):
+        grad = grad_F(x)
+        if np.any(np.isnan(grad)) or np.any(np.isinf(grad)):
+            break
+        x = x - s * grad
+        history_F.append(F(x))
+    plt.figure()
+    plt.plot(range(n_iter), history_F)
+    plt.xlabel('Iteraciones', fontsize=18)
+    plt.ylabel('F(x)', fontsize=18)
+    plt.title('F(x) vs Iteraciones', fontsize=20)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.grid()
+    plt.show()
+
+def grafico_F2(A, b, x0, n_iter):
+    x = x0
+    history_F2 = []
+    for _ in range(n_iter):
+        grad = grad_F2(x, delta2)
+        if np.any(np.isnan(grad)) or np.any(np.isinf(grad)):
+            break
+        x = x - s * grad
+        history_F2.append(F2(x, delta2))
+    plt.figure()
+    plt.plot(range(n_iter), history_F2)
+    plt.xlabel('Iteraciones', fontsize=18)
+    plt.ylabel('F2(x)', fontsize=18)
+    plt.title('F2(x) vs Iteraciones', fontsize=20)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.grid()
+    plt.show()
+
+# grafico_F2(A, b, x_init, iterations)
+
+# grafico_costo_convergencia()
+# grafico_norma_convergencia()
+# grafico_norma_x()
+# grafico_error_relativo()
 variacion_de_delta(A, b, x_init, iterations)
-variacion_de_step(A, b, x_init, iterations)
+# variacion_de_step(A, b, x_init, iterations)
+
+# grafico_F(A, b, x_init, iterations)
